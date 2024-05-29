@@ -2,8 +2,8 @@ myfun <- function(){
   #rember : library(ggplot2), library(plyr)
   data <- data.frame(
     year = numeric(0), gender = character(0), section_id = numeric(0), 
-    team_name = character(0), total_point = numeric(0), win_of_round = numeric(0), 
-    atk_point = numeric(0), total_atk = numeric(0), block = numeric(0), 
+    team_name = character(0), tot_point = numeric(0), win_round = numeric(0), 
+    atk_point = numeric(0), tot_atk = numeric(0), block = numeric(0), 
     ser_point = numeric(0), tot_ser = numeric(0), rec_good = numeric(0), 
     tot_rec = numeric(0), dig_good = numeric(0), tot_dig = numeric(0), 
     set_good = numeric(0), tot_set = numeric(0), tot_get = numeric(0)
@@ -15,22 +15,26 @@ myfun <- function(){
     data <- rbind(data,temp)
   }
   
+  data <- ddply(data, .variables = c("year","gender","section_id"), .fun = cal_win)
+  
+  #print(data)
+  
   block <-data$block
   data <- cbind(data[,-9],block)
   
-  data <- ddply(data, .variables = c("team_name","gender"), .fun = get_teamid)
-  data <- data[data$team_name!="del",]
+  data <- ddply(data, .variables = c("team_name","gender"), .fun = pure_tean_name)
   
-  print(data)
+  #print(data)
   
   section_data <- ddply(data, .variables = c("year","gender","team_name"), .fun = analysis_section)
+  section_data <- section_data[section_data$team_name!="del",]
+  
+  #print(section_data)
   
   #d_ply(section_data, .variables="gender", .fun = out_img)
   
   team_data <-ddply(section_data,.variables = c("gender","team_name"), .fun = analysis_team)
-  
   View(team_data)
-  #print(team_data)
   
 }
 
@@ -45,8 +49,10 @@ analysis_section <- function(data){
     }
   }
   colnames(container) <- c("atk", "ser", "rec", "dig", "set")
+  win_round <- mean(sum(data$win_round)/sum(data$tot_round))
+  win_section <- sum(data$is_win)
   
-  return (data.frame(container, block=mean(data$block)))
+  return (data.frame(container, block=mean(data$block), win_round, win_section, tot_section = nrow(data)))
 }
 
 frquency <- function(point,total){
@@ -55,7 +61,7 @@ frquency <- function(point,total){
   return (round(ans*100,2))
 }
 
-get_teamid <- function(data){
+pure_tean_name <- function(data){
   name = data$team_name
   A = c("台電男排","屏東台電","台電女排","高雄台電","台電公司")
   B = c("臺中長力","長力男排","臺中太陽神","中國人纖","新北中纖")
@@ -81,6 +87,7 @@ get_teamid <- function(data){
   else{
     data$team_name = "del"
   }
+  
   return(data)
 }
 
@@ -102,11 +109,23 @@ out_img <- function(data){
 }
 
 analysis_team <- function(data){
-  atk = round(mean(data$atk),2)
-  dig = round(mean(data$dig),2)
-  ser = round(mean(data$ser),2)
-  rec = round(mean(data$rec),2)
-  block = round(mean(data$block),2)
-  set = round(mean(data$set),2)
-  return( data.frame(atk, dig, ser, rec, block, set))
+  for( i in 4:10){
+    temp <- round(mean(data[,i]),2)
+    if(i == 4){
+      container <- data.frame(temp)
+    }
+    else{
+      container <- cbind(container, temp)
+    }
+  }
+  colnames(container) <- colnames(data)[4:10]
+  win_section <- round(mean(data[,11]/data[,12]),2)
+  
+  return (data.frame(container, win_section))
+}
+
+cal_win <- function(data){
+  tot_round <- sum(data$win_round)
+  is_win <- data$win_round == 3
+  return(data.frame(data, tot_round,is_win))
 }
