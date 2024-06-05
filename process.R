@@ -24,17 +24,19 @@ myfun <- function(){
   
   data <- ddply(data, .variables = c("team_name","gender"), .fun = pure_tean_name)
   
-  #print(data)
+  print(data)
   
-  section_data <- ddply(data, .variables = c("year","gender","team_name"), .fun = analysis_section)
-  section_data <- section_data[section_data$team_name!="del",]
+  #section_data <- ddply(data, .variables = c("year","gender","team_name"), .fun = analysis_section)
+  #section_data <- section_data[section_data$team_name!="del",]
   
   #print(section_data)
   
   #d_ply(section_data, .variables="gender", .fun = out_img)
   
-  team_data <-ddply(section_data,.variables = c("gender","team_name"), .fun = analysis_team)
-  View(team_data)
+  #team_data <-ddply(section_data,.variables = c("gender","team_name"), .fun = analysis_team)
+  #View(team_data)
+  
+  #ggplot(team_data, aes())
   
 }
 
